@@ -29,9 +29,29 @@ function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
 
+function sortStudents(students, sortBy, order = "asc") {
+  if (!students || students.length === 0) return [];
+  
+  const copiedStudents = [...students];
+
+  return copiedStudents.sort((a, b) => {
+    let comparison = 0;
+    if (sortBy === "name") {
+      comparison = a.name.localeCompare(b.name);
+    } else if (sortBy === "grade") {
+      comparison = a.grade - b.grade;
+    } else if (sortBy === "age") {
+      comparison = a.age - b.age;
+    }
+    
+    return order === "desc" ? -comparison : comparison;
+  });
+}
+
 module.exports = {
   capitalize,
   calculateAverage,
   slugify,
   clamp,
+  sortStudents,
 };

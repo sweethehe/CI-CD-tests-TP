@@ -1,5 +1,5 @@
 const request = require('supertest');
-const { capitalize, calculateAverage, slugify, clamp } = require('../src/utils.js');
+const { capitalize, calculateAverage, slugify, clamp, sortStudents } = require('../src/utils.js');
 
 // Tests Capitalize
 describe('C A P I T A L I Z E - T E S T S', () => {
@@ -104,5 +104,78 @@ describe('C L A M P - T E S T S', () => {
 
     it('should return the minimum boundary when the value is null', () => {
         expect(clamp(null, 5, 10)).toBe(5);
+    });
+});
+
+// Tests Sort Students
+describe('S O R T - S T U D E N T S - T E S T S', () => {
+    const defaultStudents = [
+        { name: "Charlie", grade: 90, age: 21 },
+        { name: "Alice", grade: 80, age: 20 },
+        { name: "Bob", grade: 60, age: 22 }
+    ];
+
+    it('1. should sort students by grade ascending', () => {
+        const expected = [
+            { name: "Bob", grade: 60, age: 22 },
+            { name: "Alice", grade: 80, age: 20 },
+            { name: "Charlie", grade: 90, age: 21 }
+        ];
+        expect(sortStudents(defaultStudents, "grade", "asc")).toEqual(expected);
+    });
+
+    it('2. should sort students by grade descending', () => {
+        const expected = [
+            { name: "Charlie", grade: 90, age: 21 },
+            { name: "Alice", grade: 80, age: 20 },
+            { name: "Bob", grade: 60, age: 22 }
+        ];
+        expect(sortStudents(defaultStudents, "grade", "desc")).toEqual(expected);
+    });
+
+    it('3. should sort students by name ascending', () => {
+        const expected = [
+            { name: "Alice", grade: 80, age: 20 },
+            { name: "Bob", grade: 60, age: 22 },
+            { name: "Charlie", grade: 90, age: 21 }
+        ];
+        expect(sortStudents(defaultStudents, "name", "asc")).toEqual(expected);
+    });
+
+    it('4. should sort students by age ascending', () => {
+        const expected = [
+            { name: "Alice", grade: 80, age: 20 },
+            { name: "Charlie", grade: 90, age: 21 },
+            { name: "Bob", grade: 60, age: 22 }
+        ];
+        expect(sortStudents(defaultStudents, "age", "asc")).toEqual(expected);
+    });
+
+    it('5. should return empty array for null input', () => {
+        expect(sortStudents(null, "grade", "asc")).toEqual([]);
+    });
+
+    it('6. should return empty array for empty input', () => {
+        expect(sortStudents([], "grade", "asc")).toEqual([]);
+    });
+
+    it('7. should not modify the original array', () => {
+        const original = [
+            { name: "Charlie", grade: 90, age: 21 },
+            { name: "Alice", grade: 80, age: 20 }
+        ];
+        const copy = [...original];
+        sortStudents(original, "name", "asc");
+        expect(original).toEqual(copy);
+    });
+
+    it('8. should default to ascending order', () => {
+        const expected = [
+            { name: "Bob", grade: 60, age: 22 },
+            { name: "Alice", grade: 80, age: 20 },
+            { name: "Charlie", grade: 90, age: 21 }
+        ];
+        // Appel sans le 3e parametre (order)
+        expect(sortStudents(defaultStudents, "grade")).toEqual(expected);
     });
 });
