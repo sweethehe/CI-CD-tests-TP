@@ -21,7 +21,9 @@ module.exports = [
         },
         rules: {
             "no-unused-vars": "error",
-            "no-console": "error",
+            "no-unreachable": "error",
+            "no-duplicate-imports": "error",
+            "no-console": "warn",
             "indent": ["error", 4]
         }
     }

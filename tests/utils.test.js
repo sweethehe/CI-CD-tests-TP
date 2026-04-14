@@ -1,12 +1,11 @@
-const request = require('supertest');
 const { capitalize, calculateAverage, slugify, clamp, sortStudents } = require('../src/utils.js');
 
 // Tests Capitalize
 describe('C A P I T A L I Z E - T E S T S', () => {
     it('should capitalize the first letter and lowercase the rest when a generic string is provided', async () => {
-       const str = "hello";
-       const result = capitalize(str);
-       expect(result).toBe("Hello");
+        const str = "hello";
+        const result = capitalize(str);
+        expect(result).toBe("Hello");
     });
 
     it('should capitalize only the first letter when an all-uppercase string is provided', async () => {
@@ -31,9 +30,9 @@ describe('C A P I T A L I Z E - T E S T S', () => {
 // Tests Calculate Average
 describe('C A L C U L A T E - A V E R A G E - T E S T S', () => {
     it('should return the average when a normal list of numbers is provided', async () => {
-       const numbers = [10, 12, 14];
-       const result = calculateAverage(numbers);
-       expect(result).toBe(12);
+        const numbers = [10, 12, 14];
+        const result = calculateAverage(numbers);
+        expect(result).toBe(12);
     });
 
     it('should return the number when a list containing only one number is provided', async () => {

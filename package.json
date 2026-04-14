@@ -6,13 +6,14 @@
   "scripts": {
     "test": "jest",
     "test:cov": "jest --coverage",
-    "lint": "eslint src tests"
+    "lint": "node ./node_modules/eslint/bin/eslint.js src tests"
   },
   "keywords": [],
   "author": "Enora",
   "license": "ISC",
   "devDependencies": {
-    "eslint": "^10.2.0",
+    "@eslint/js": "latest",
+    "eslint": "latest",
     "jest": "^30.3.0",
     "supertest": "^7.2.2"
   },

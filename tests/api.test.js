@@ -44,96 +44,96 @@ describe('API INTÉGRATION TESTS', () => {
         });
 
         it('4. devrais renvoyer 400 si le panier est complètement vide', async () => {
-             const body = { items: [], distance: 5, weight: 1, promoCode: null, hour: "15:00", dayOfWeek: "mardi" };
-             const response = await request(app).post('/orders/simulate').send(body);
-             expect(response.status).toBe(400);
-             expect(response.body.error).toBe("Le panier est vide");
+            const body = { items: [], distance: 5, weight: 1, promoCode: null, hour: "15:00", dayOfWeek: "mardi" };
+            const response = await request(app).post('/orders/simulate').send(body);
+            expect(response.status).toBe(400);
+            expect(response.body.error).toBe("Le panier est vide");
         });
 
         it('5. devrais renvoyer 400 si la livraison est hors zone (ex: 15km)', async () => {
-             const body = {
-                 items: [{ name: "Pizza", price: 12.50, quantity: 2 }],
-                 distance: 15, weight: 1, promoCode: null, hour: "15:00", dayOfWeek: "mardi"
-             };
-             const response = await request(app).post('/orders/simulate').send(body);
-             expect(response.status).toBe(400);
-             expect(response.body.error).toBe("La distance de livraison est trop importante");
+            const body = {
+                items: [{ name: "Pizza", price: 12.50, quantity: 2 }],
+                distance: 15, weight: 1, promoCode: null, hour: "15:00", dayOfWeek: "mardi"
+            };
+            const response = await request(app).post('/orders/simulate').send(body);
+            expect(response.status).toBe(400);
+            expect(response.body.error).toBe("La distance de livraison est trop importante");
         });
 
         it('6. devrais renvoyer 400 si la commande est passée quand c est fermé (23h)', async () => {
             const body = {
-                 items: [{ name: "Pizza", price: 12.50, quantity: 2 }],
-                 distance: 5, weight: 1, promoCode: null, hour: "23:00", dayOfWeek: "mardi"
-             };
-             const response = await request(app).post('/orders/simulate').send(body);
-             expect(response.status).toBe(400);
-             expect(response.body.error).toBe("L'établissement est fermé à cette heure-là");
+                items: [{ name: "Pizza", price: 12.50, quantity: 2 }],
+                distance: 5, weight: 1, promoCode: null, hour: "23:00", dayOfWeek: "mardi"
+            };
+            const response = await request(app).post('/orders/simulate').send(body);
+            expect(response.status).toBe(400);
+            expect(response.body.error).toBe("L'établissement est fermé à cette heure-là");
         });
 
         it('7. devrais avoir un deliveryFee bien multiplié pendant un pic de Surge (vendredi 20h)', async () => {
             const body = {
-                 items: [{ name: "Pizza", price: 12.50, quantity: 2 }],
-                 distance: 5, weight: 1, promoCode: null, hour: "20:00", dayOfWeek: "vendredi" // Surge = 1.8
-             };
-             const response = await request(app).post('/orders/simulate').send(body);
-             expect(response.status).toBe(200);
-             expect(response.body.surge).toBe(1.8);
-             expect(response.body.deliveryFee).toBe(5.4); // 3 * 1.8
+                items: [{ name: "Pizza", price: 12.50, quantity: 2 }],
+                distance: 5, weight: 1, promoCode: null, hour: "20:00", dayOfWeek: "vendredi" // Surge = 1.8
+            };
+            const response = await request(app).post('/orders/simulate').send(body);
+            expect(response.status).toBe(200);
+            expect(response.body.surge).toBe(1.8);
+            expect(response.body.deliveryFee).toBe(5.4); // 3 * 1.8
         });
     });
 
     describe('POST /orders (5 tests min)', () => {
         it('1. devrais renvoyer 201 et lier un nouvel ID pour une commande valide', async () => {
-             const body = {
-                 items: [{ name: "Salade", price: 10, quantity: 1 }],
-                 distance: 2, weight: 1, promoCode: null, hour: "15:00", dayOfWeek: "lundi"
-             };
-             const response = await request(app).post('/orders').send(body);
-             expect(response.status).toBe(201);
-             expect(response.body).toHaveProperty("id");
-             expect(response.body.id).toBe(1);
+            const body = {
+                items: [{ name: "Salade", price: 10, quantity: 1 }],
+                distance: 2, weight: 1, promoCode: null, hour: "15:00", dayOfWeek: "lundi"
+            };
+            const response = await request(app).post('/orders').send(body);
+            expect(response.status).toBe(201);
+            expect(response.body).toHaveProperty("id");
+            expect(response.body.id).toBe(1);
         });
 
         it('2. devrais retrouver la même commande que celle fraichement postée via GET /orders/:id', async () => {
-             const body = {
-                 items: [{ name: "Salade", price: 10, quantity: 1 }],
-                 distance: 2, weight: 1, promoCode: null, hour: "15:00", dayOfWeek: "lundi"
-             };
-             const postResponse = await request(app).post('/orders').send(body);
-             const newId = postResponse.body.id;
+            const body = {
+                items: [{ name: "Salade", price: 10, quantity: 1 }],
+                distance: 2, weight: 1, promoCode: null, hour: "15:00", dayOfWeek: "lundi"
+            };
+            const postResponse = await request(app).post('/orders').send(body);
+            const newId = postResponse.body.id;
 
-             const getResponse = await request(app).get(`/orders/${newId}`);
-             expect(getResponse.status).toBe(200);
-             expect(getResponse.body.id).toBe(newId);
-             expect(getResponse.body.total).toBe(postResponse.body.total);
+            const getResponse = await request(app).get(`/orders/${newId}`);
+            expect(getResponse.status).toBe(200);
+            expect(getResponse.body.id).toBe(newId);
+            expect(getResponse.body.total).toBe(postResponse.body.total);
         });
 
         it('3. devrais assigner deux IDs bel et bien différents pour deux commandes passées de suite', async () => {
-             const body = { items: [{ name: "Salade", price: 10, quantity: 1 }], distance: 2, weight: 1, promoCode: null, hour: "15:00", dayOfWeek: "lundi" };
-             const post1 = await request(app).post('/orders').send(body);
-             const post2 = await request(app).post('/orders').send(body);
+            const body = { items: [{ name: "Salade", price: 10, quantity: 1 }], distance: 2, weight: 1, promoCode: null, hour: "15:00", dayOfWeek: "lundi" };
+            const post1 = await request(app).post('/orders').send(body);
+            const post2 = await request(app).post('/orders').send(body);
 
-             expect(post1.body.id).not.toBe(post2.body.id);
-             expect(post1.body.id).toBe(1);
-             expect(post2.body.id).toBe(2);
+            expect(post1.body.id).not.toBe(post2.body.id);
+            expect(post1.body.id).toBe(1);
+            expect(post2.body.id).toBe(2);
         });
 
         it('4. devrais renvoyer 400 et planter l enregistrement de la commande si celle-ci est invalide', async () => {
-             const body = { items: [], distance: 2, weight: 1, promoCode: null, hour: "15:00", dayOfWeek: "lundi" };
-             const response = await request(app).post('/orders').send(body);
-             expect(response.status).toBe(400);
+            const body = { items: [], distance: 2, weight: 1, promoCode: null, hour: "15:00", dayOfWeek: "lundi" };
+            const response = await request(app).post('/orders').send(body);
+            expect(response.status).toBe(400);
         });
 
         it('5. devrais bien empêcher qu\'une commande invalide s\'enregistre dans la memoire fantome', async () => {
-             const validBody = { items: [{ name: "Salade", price: 10, quantity: 1 }], distance: 2, weight: 1, promoCode: null, hour: "15:00", dayOfWeek: "lundi" };
-             const invalidBody = { items: [], distance: 2, weight: 1, promoCode: null, hour: "15:00", dayOfWeek: "lundi" };
+            const validBody = { items: [{ name: "Salade", price: 10, quantity: 1 }], distance: 2, weight: 1, promoCode: null, hour: "15:00", dayOfWeek: "lundi" };
+            const invalidBody = { items: [], distance: 2, weight: 1, promoCode: null, hour: "15:00", dayOfWeek: "lundi" };
              
-             await request(app).post('/orders').send(validBody); // ID 1
-             await request(app).post('/orders').send(invalidBody); // Doit planter
+            await request(app).post('/orders').send(validBody); // ID 1
+            await request(app).post('/orders').send(invalidBody); // Doit planter
 
-             // L'id 2 de l'invalidBody n'a pas été enregistré. Donc un GET sur /orders/2 doit faire 404
-             const getResponse = await request(app).get('/orders/2');
-             expect(getResponse.status).toBe(404);
+            // L'id 2 de l'invalidBody n'a pas été enregistré. Donc un GET sur /orders/2 doit faire 404
+            const getResponse = await request(app).get('/orders/2');
+            expect(getResponse.status).toBe(404);
         });
     });
 
@@ -152,14 +152,14 @@ describe('API INTÉGRATION TESTS', () => {
         });
 
         it('3. devrais renvoyer une structure complète et conforme', async () => {
-             const body = { items: [{ name: "A", price: 10, quantity: 1 }], distance: 2, weight: 1, promoCode: null, hour: "15:00", dayOfWeek: "lundi" };
-             const postResponse = await request(app).post('/orders').send(body);
-             const getResponse = await request(app).get(`/orders/${postResponse.body.id}`);
-             expect(getResponse.body).toHaveProperty("id");
-             expect(getResponse.body).toHaveProperty("items");
-             expect(getResponse.body).toHaveProperty("subtotal");
-             expect(getResponse.body).toHaveProperty("total");
-             expect(getResponse.body).toHaveProperty("distance");
+            const body = { items: [{ name: "A", price: 10, quantity: 1 }], distance: 2, weight: 1, promoCode: null, hour: "15:00", dayOfWeek: "lundi" };
+            const postResponse = await request(app).post('/orders').send(body);
+            const getResponse = await request(app).get(`/orders/${postResponse.body.id}`);
+            expect(getResponse.body).toHaveProperty("id");
+            expect(getResponse.body).toHaveProperty("items");
+            expect(getResponse.body).toHaveProperty("subtotal");
+            expect(getResponse.body).toHaveProperty("total");
+            expect(getResponse.body).toHaveProperty("distance");
         });
     });
 
@@ -202,9 +202,9 @@ describe('API INTÉGRATION TESTS', () => {
         });
 
         it('5. devrais renvoyer 400 si aucun code n est envoyé dans la Payload', async () => {
-             const response = await request(app).post('/promo/validate').send({ subtotal: 50 });
-             expect(response.status).toBe(400);
-             expect(response.body.error).toBe("Promo code manquant");
+            const response = await request(app).post('/promo/validate').send({ subtotal: 50 });
+            expect(response.status).toBe(400);
+            expect(response.body.error).toBe("Promo code manquant");
         });
     });
 });

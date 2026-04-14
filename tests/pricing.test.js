@@ -43,7 +43,7 @@ describe('T A R I F I C A T I O N - T E S T S', () => {
         });
 
         it('should throw an error for negative weight', () => {
-             expect(() => calculateDeliveryFee(1, -1)).toThrow("La distance et le poids ne peuvent pas être négatifs");
+            expect(() => calculateDeliveryFee(1, -1)).toThrow("La distance et le poids ne peuvent pas être négatifs");
         });
 
         it('should be valid for distance = 0', () => {
@@ -64,11 +64,11 @@ describe('T A R I F I C A T I O N - T E S T S', () => {
 });
 
 const mockPromoCodes = [
-  { code: "PERCENT20", type: "percentage", value: 20, minOrder: 15.00, expiresAt: "2099-12-31" },
-  { code: "FIXED5", type: "fixed", value: 5, minOrder: 10.00, expiresAt: "2099-12-31" },
-  { code: "FIXED10", type: "fixed", value: 10, minOrder: 0.00, expiresAt: "2099-12-31" },
-  { code: "PERCENT100", type: "percentage", value: 100, minOrder: 0.00, expiresAt: "2099-12-31" },
-  { code: "EXPIRED", type: "fixed", value: 5, minOrder: 10.00, expiresAt: "2000-01-01" },
+    { code: "PERCENT20", type: "percentage", value: 20, minOrder: 15.00, expiresAt: "2099-12-31" },
+    { code: "FIXED5", type: "fixed", value: 5, minOrder: 10.00, expiresAt: "2099-12-31" },
+    { code: "FIXED10", type: "fixed", value: 10, minOrder: 0.00, expiresAt: "2099-12-31" },
+    { code: "PERCENT100", type: "percentage", value: 100, minOrder: 0.00, expiresAt: "2099-12-31" },
+    { code: "EXPIRED", type: "fixed", value: 5, minOrder: 10.00, expiresAt: "2000-01-01" },
 ];
 
 describe('P R O M O - C O D E - T E S T S', () => {
@@ -93,7 +93,7 @@ describe('P R O M O - C O D E - T E S T S', () => {
         });
 
         it('should throw an error if the order is strictly below the minimum required', () => {
-             expect(() => applyPromoCode(14.99, "PERCENT20", mockPromoCodes)).toThrow("Commande sous le minOrder");
+            expect(() => applyPromoCode(14.99, "PERCENT20", mockPromoCodes)).toThrow("Commande sous le minOrder");
         });
 
         it('should throw an error if the code does not exist in the list', () => {
@@ -111,7 +111,7 @@ describe('P R O M O - C O D E - T E S T S', () => {
         });
 
         it('should allow valid promo codes on an empty order (subtotal = 0)', () => {
-             expect(applyPromoCode(0, "FIXED10", mockPromoCodes)).toBe(0);
+            expect(applyPromoCode(0, "FIXED10", mockPromoCodes)).toBe(0);
         });
 
         it('should accept a promo code that expires exactly today', () => {
@@ -172,7 +172,7 @@ describe('S U R G E - P R I C I N G - T E S T S', () => {
         });
 
         it('should return 0 (ferme) at exactly 22h00', () => {
-             expect(calculateSurge("22h00", "mercredi")).toBe(0);
+            expect(calculateSurge("22h00", "mercredi")).toBe(0);
         });
 
         it('should return 0 (ferme) at 9h59', () => {
