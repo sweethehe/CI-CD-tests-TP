@@ -81,8 +81,57 @@ function calculateSurge(hour, dayOfWeek) {
   return 1.0;
 }
 
+function calculateOrderTotal(items, distance, weight, promoCode, promoCodes, hour, dayOfWeek) {
+  if (!items || items.length === 0) {
+    throw new Error("Le panier est vide");
+  }
+
+  let subtotal = 0;
+  for (const item of items) {
+    if (item.price < 0) {
+      throw new Error("Le prix d'un article ne peut pas être négatif");
+    }
+    if (item.quantity <= 0) {
+      throw new Error("La quantité d'un article doit être supérieure à 0");
+    }
+    subtotal += item.price * item.quantity;
+  }
+
+  const surge = calculateSurge(hour, dayOfWeek);
+  if (surge === 0) {
+    throw new Error("L'établissement est fermé à cette heure-là");
+  }
+
+  const deliveryFeeBase = calculateDeliveryFee(distance, weight);
+  if (deliveryFeeBase === null) {
+    throw new Error("La distance de livraison est trop importante");
+  }
+
+  const deliveryFee = deliveryFeeBase * surge;
+
+  let discount = 0;
+  let discountedSubtotal = subtotal;
+  
+  if (promoCode) {
+    // This will throw if the promo code is invalid, expired, or subtotal is below minOrder
+    discountedSubtotal = applyPromoCode(subtotal, promoCode, promoCodes);
+    discount = subtotal - discountedSubtotal;
+  }
+
+  const total = discountedSubtotal + deliveryFee;
+
+  return {
+    subtotal: Number(subtotal.toFixed(2)),
+    discount: Number(discount.toFixed(2)),
+    deliveryFee: Number(deliveryFee.toFixed(2)),
+    surge: Number(surge.toFixed(2)),
+    total: Number(total.toFixed(2))
+  };
+}
+
 module.exports = {
   calculateDeliveryFee,
   applyPromoCode,
   calculateSurge,
+  calculateOrderTotal,
 };

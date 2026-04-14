@@ -1,4 +1,4 @@
-const { calculateDeliveryFee, applyPromoCode, calculateSurge } = require('../src/pricing.js');
+const { calculateDeliveryFee, applyPromoCode, calculateSurge, calculateOrderTotal } = require('../src/pricing.js');
 
 describe('T A R I F I C A T I O N - T E S T S', () => {
 
@@ -181,6 +181,94 @@ describe('S U R G E - P R I C I N G - T E S T S', () => {
 
         it('should return 1.0 (ouvert) at exactly 10h00', () => {
             expect(calculateSurge("10h00", "jeudi")).toBe(1.0);
+        });
+    });
+});
+
+describe('O R D E R - T O T A L - T E S T S', () => {
+    const mockOrderPromos = [
+        { code: "PERCENT20", type: "percentage", value: 20, minOrder: 10.00, expiresAt: "2099-12-31" }
+    ];
+
+    describe('Scenario complet', () => {
+        it('should correctly calculate total without promo (mardi 15h)', () => {
+            const items = [{ name: "Pizza", price: 12.50, quantity: 2 }];
+            const result = calculateOrderTotal(items, 5, 1, null, mockOrderPromos, "15h00", "mardi");
+            expect(result).toEqual({
+                subtotal: 25.00,
+                discount: 0.00,
+                deliveryFee: 3.00,
+                surge: 1.00,
+                total: 28.00
+            });
+        });
+
+        it('should correctly calculate total with a 20% promo code (mardi 15h)', () => {
+            const items = [{ name: "Pizza", price: 12.50, quantity: 2 }];
+            const result = calculateOrderTotal(items, 5, 1, "PERCENT20", mockOrderPromos, "15h00", "mardi");
+            expect(result).toEqual({
+                subtotal: 25.00,
+                discount: 5.00,
+                deliveryFee: 3.00,
+                surge: 1.00,
+                total: 23.00
+            });
+        });
+
+        it('should correctly calculate total with surge pricing (vendredi 20h)', () => {
+            const items = [{ name: "Pizza", price: 12.50, quantity: 2 }];
+            const result = calculateOrderTotal(items, 5, 1, null, mockOrderPromos, "20h00", "vendredi");
+            expect(result).toEqual({
+                subtotal: 25.00,
+                discount: 0.00,
+                deliveryFee: 5.40,
+                surge: 1.80,
+                total: 30.40
+            });
+        });
+    });
+
+    describe('Cas qui cassent', () => {
+        it('should throw an error for an empty cart', () => {
+            expect(() => calculateOrderTotal([], 5, 1, null, mockOrderPromos, "15h00", "mardi")).toThrow("Le panier est vide");
+        });
+
+        it('should throw an error for an item with quantity 0', () => {
+            const items = [{ name: "Pizza", price: 12.50, quantity: 0 }];
+            expect(() => calculateOrderTotal(items, 5, 1, null, mockOrderPromos, "15h00", "mardi")).toThrow("La quantité d'un article doit être supérieure à 0");
+        });
+
+        it('should throw an error for an item with negative price', () => {
+            const items = [{ name: "Pizza", price: -12.50, quantity: 2 }];
+            expect(() => calculateOrderTotal(items, 5, 1, null, mockOrderPromos, "15h00", "mardi")).toThrow("Le prix d'un article ne peut pas être négatif");
+        });
+
+        it('should throw an error when ordering at 23h (closed)', () => {
+            const items = [{ name: "Pizza", price: 12.50, quantity: 2 }];
+            expect(() => calculateOrderTotal(items, 5, 1, null, mockOrderPromos, "23h00", "mardi")).toThrow("L'établissement est fermé à cette heure-là");
+        });
+
+        it('should throw an error when distance is out of bounds (15km)', () => {
+            const items = [{ name: "Pizza", price: 12.50, quantity: 2 }];
+            expect(() => calculateOrderTotal(items, 15, 1, null, mockOrderPromos, "15h00", "mardi")).toThrow("La distance de livraison est trop importante");
+        });
+    });
+
+    describe('Verification mathematique', () => {
+        it('should mathematically match subtotal + deliveryFee = total without promo', () => {
+            const items = [{ name: "Pasta", price: 10, quantity: 3 }];
+            const result = calculateOrderTotal(items, 6, 2, null, mockOrderPromos, "20h00", "jeudi");
+            expect(result.subtotal + result.deliveryFee).toBeCloseTo(result.total);
+            expect(result.discount).toBe(0);
+        });
+
+        it('should strictly apply surge only to delivery fee, not the subtotal', () => {
+            const items = [{ name: "Salad", price: 10, quantity: 1 }];
+            const result = calculateOrderTotal(items, 3, 1, null, mockOrderPromos, "21h00", "vendredi");
+            expect(result.subtotal).toBe(10.00);
+            expect(result.deliveryFee).toBe(3.60);
+            expect(result.surge).toBe(1.80);
+            expect(result.total).toBe(13.60);
         });
     });
 });
