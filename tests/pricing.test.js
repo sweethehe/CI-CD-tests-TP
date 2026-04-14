@@ -1,4 +1,4 @@
-const { calculateDeliveryFee } = require('../src/pricing.js');
+const { calculateDeliveryFee, applyPromoCode } = require('../src/pricing.js');
 
 describe('T A R I F I C A T I O N - T E S T S', () => {
 
@@ -59,6 +59,81 @@ describe('T A R I F I C A T I O N - T E S T S', () => {
 
         it('should calculate precisely 7.00 for 10 km, 6 kg', () => {
             expect(calculateDeliveryFee(10, 6)).toBe(7.00);
+        });
+    });
+});
+
+const mockPromoCodes = [
+  { code: "PERCENT20", type: "percentage", value: 20, minOrder: 15.00, expiresAt: "2099-12-31" },
+  { code: "FIXED5", type: "fixed", value: 5, minOrder: 10.00, expiresAt: "2099-12-31" },
+  { code: "FIXED10", type: "fixed", value: 10, minOrder: 0.00, expiresAt: "2099-12-31" },
+  { code: "PERCENT100", type: "percentage", value: 100, minOrder: 0.00, expiresAt: "2099-12-31" },
+  { code: "EXPIRED", type: "fixed", value: 5, minOrder: 10.00, expiresAt: "2000-01-01" },
+];
+
+describe('P R O M O - C O D E - T E S T S', () => {
+
+    describe('Cas normaux', () => {
+        it('should correctly apply a percentage code (20% off 50 = 40)', () => {
+            expect(applyPromoCode(50, "PERCENT20", mockPromoCodes)).toBe(40.00);
+        });
+
+        it('should correctly apply a fixed code (5 off 30 = 25)', () => {
+            expect(applyPromoCode(30, "FIXED5", mockPromoCodes)).toBe(25.00);
+        });
+
+        it('should successfully apply a code when the minimum order is strictly met', () => {
+            expect(applyPromoCode(15, "PERCENT20", mockPromoCodes)).toBe(12.00);
+        });
+    });
+
+    describe('Refus du code', () => {
+        it('should throw an error if the promo code is expired', () => {
+            expect(() => applyPromoCode(50, "EXPIRED", mockPromoCodes)).toThrow("Code promo expiré");
+        });
+
+        it('should throw an error if the order is strictly below the minimum required', () => {
+             expect(() => applyPromoCode(14.99, "PERCENT20", mockPromoCodes)).toThrow("Commande sous le minOrder");
+        });
+
+        it('should throw an error if the code does not exist in the list', () => {
+            expect(() => applyPromoCode(50, "UNKNOWN", mockPromoCodes)).toThrow("Code promo inconnu");
+        });
+    });
+
+    describe('Cas limites dangereux', () => {
+        it('should not return a negative total if fixed code value exceeds subtotal', () => {
+            expect(applyPromoCode(5, "FIXED10", mockPromoCodes)).toBe(0);
+        });
+
+        it('should completely zero out the total if a 100% percentage code is applied', () => {
+            expect(applyPromoCode(50, "PERCENT100", mockPromoCodes)).toBe(0);
+        });
+
+        it('should allow valid promo codes on an empty order (subtotal = 0)', () => {
+             expect(applyPromoCode(0, "FIXED10", mockPromoCodes)).toBe(0);
+        });
+
+        it('should accept a promo code that expires exactly today', () => {
+            const todayDateString = new Date().toISOString().split('T')[0];
+            const dynamicPromos = [
+                { code: "TODAY", type: "fixed", value: 5, minOrder: 0.00, expiresAt: todayDateString }
+            ];
+            expect(applyPromoCode(50, "TODAY", dynamicPromos)).toBe(45);
+        });
+    });
+
+    describe('Entrees invalides', () => {
+        it('should return raw subtotal without applying discount if promo code is null', () => {
+            expect(applyPromoCode(50, null, mockPromoCodes)).toBe(50);
+        });
+
+        it('should return raw subtotal without applying discount if promo code is empty string', () => {
+            expect(applyPromoCode(50, "", mockPromoCodes)).toBe(50);
+        });
+
+        it('should throw an error if the provided subtotal is negative', () => {
+            expect(() => applyPromoCode(-5, "PERCENT20", mockPromoCodes)).toThrow("Le sous-total ne peut pas être négatif");
         });
     });
 });
