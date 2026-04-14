@@ -1,4 +1,4 @@
-const { calculateDeliveryFee, applyPromoCode } = require('../src/pricing.js');
+const { calculateDeliveryFee, applyPromoCode, calculateSurge } = require('../src/pricing.js');
 
 describe('T A R I F I C A T I O N - T E S T S', () => {
 
@@ -134,6 +134,53 @@ describe('P R O M O - C O D E - T E S T S', () => {
 
         it('should throw an error if the provided subtotal is negative', () => {
             expect(() => applyPromoCode(-5, "PERCENT20", mockPromoCodes)).toThrow("Le sous-total ne peut pas être négatif");
+        });
+    });
+});
+
+describe('S U R G E - P R I C I N G - T E S T S', () => {
+    describe('Chaque multiplicateur', () => {
+        it('should return 1.0 (normal) for Mardi 15h', () => {
+            expect(calculateSurge("15h00", "mardi")).toBe(1.0);
+        });
+
+        it('should return 1.3 (dejeuner) for Mercredi 12h30', () => {
+            expect(calculateSurge("12:30", "mercredi")).toBe(1.3);
+        });
+
+        it('should return 1.5 (diner) for Jeudi 20h', () => {
+            expect(calculateSurge("20h00", "jeudi")).toBe(1.5);
+        });
+
+        it('should return 1.8 (weekend soir) for Vendredi 21h', () => {
+            expect(calculateSurge("21h00", "vendredi")).toBe(1.8);
+        });
+
+        it('should return 1.2 (dimanche) for Dimanche 14h', () => {
+            // Also tests numeric hour parsing here
+            expect(calculateSurge(14, "dimanche")).toBe(1.2);
+        });
+    });
+
+    describe('Transitions et limites', () => {
+        it('should return 1.0 (normal) at exactly 11h30 before lunch starts', () => {
+            expect(calculateSurge("11h30", "mardi")).toBe(1.0);
+        });
+
+        it('should return 1.5 (diner) at exactly 19h00', () => {
+            expect(calculateSurge("19:00", "lundi")).toBe(1.5);
+        });
+
+        it('should return 0 (ferme) at exactly 22h00', () => {
+             expect(calculateSurge("22h00", "mercredi")).toBe(0);
+        });
+
+        it('should return 0 (ferme) at 9h59', () => {
+            expect(calculateSurge("09:59", "vendredi")).toBe(0);
+        });
+
+        it('should return 1.0 (ouvert) at exactly 10h00', () => {
+            expect(calculateSurge("10h00", "jeudi")).toBe(1.0);
         });
     });
 });

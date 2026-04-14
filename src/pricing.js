@@ -54,7 +54,35 @@ function applyPromoCode(subtotal, promoCode, promoCodes) {
   return Math.max(0, finalPrice);
 }
 
+function calculateSurge(hour, dayOfWeek) {
+  let h = hour;
+  if (typeof hour === 'string') {
+    const parts = hour.toLowerCase().replace('h', ':').split(':');
+    h = parseInt(parts[0], 10) + (parseInt(parts[1] || 0, 10) / 60);
+  }
+  
+  if (h < 10 || h >= 22) return 0; // fermé
+  
+  const day = dayOfWeek.toLowerCase().trim();
+  
+  if (day === 'dimanche') return 1.2;
+  
+  if (['vendredi', 'samedi'].includes(day)) {
+    if (h >= 19 && h < 22) return 1.8;
+    return 1.0;
+  }
+  
+  if (['lundi', 'mardi', 'mercredi', 'jeudi'].includes(day)) {
+    if (h >= 12 && h < 13.5) return 1.3;
+    if (h >= 19 && h < 21) return 1.5;
+    return 1.0;
+  }
+  
+  return 1.0;
+}
+
 module.exports = {
   calculateDeliveryFee,
   applyPromoCode,
+  calculateSurge,
 };
