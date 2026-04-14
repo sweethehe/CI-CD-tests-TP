@@ -178,4 +178,10 @@ describe('S O R T - S T U D E N T S - T E S T S', () => {
         // Appel sans le 3e parametre (order)
         expect(sortStudents(defaultStudents, "grade")).toEqual(expected);
     });
+
+    it('9. should return original order (comparison=0) when sort property is unknown', () => {
+        const expected = [...defaultStudents];
+        // unknown property bypasses name, grade and age
+        expect(sortStudents(defaultStudents, "unknown")).toEqual(expected);
+    });
 });

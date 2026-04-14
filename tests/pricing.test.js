@@ -183,6 +183,16 @@ describe('S U R G E - P R I C I N G - T E S T S', () => {
             expect(calculateSurge("10h00", "jeudi")).toBe(1.0);
         });
     });
+
+    describe('Couverture manquante Surge', () => {
+        it('devrait retourner 1.0 (normal) un vendredi hors heure de pointe (ex: 15h)', () => {
+            expect(calculateSurge("15h00", "vendredi")).toBe(1.0);
+        });
+
+        it('devrait retourner 1.0 par défaut pour un jour inconnu', () => {
+            expect(calculateSurge("15h00", "pluton")).toBe(1.0);
+        });
+    });
 });
 
 describe('O R D E R - T O T A L - T E S T S', () => {
