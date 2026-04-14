@@ -1,10 +1,13 @@
 const express = require('express');
 
-// On initialise l'application Express
+const orderRoutes = require('./routes/order.js');
+const promoRoutes = require('./routes/promo.js');
+
 const app = express();
 
-// On dit à Express de comprendre le format JSON
 app.use(express.json());
 
-// On exporte l'application pour pouvoir l'utiliser dans d'autres fichiers
+app.use('/orders', orderRoutes.router);
+app.use('/promo', promoRoutes.router);
+
 module.exports = app;
